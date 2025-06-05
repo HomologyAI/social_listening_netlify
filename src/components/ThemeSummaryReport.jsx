@@ -2,31 +2,27 @@
 import React from "react";
 
 export default function ThemeSummaryReport({ themes }) {
+  console.log(themes);
   return (
     <section className="w-full mb-8">
       <h1 className="text-3xl font-bold text-center text-blue-900 mb-8 tracking-wide">领克 900 用户深度洞察报告</h1>
       <div className="space-y-8">
         {themes.map(theme => (
           <div key={theme.label} className="bg-white rounded-xl shadow-lg border border-blue-100 p-8">
-            {/* 一级主题标题 */}
             <div className="flex items-center mb-4">
               <div className="w-2 h-8 bg-blue-600 rounded mr-3"></div>
               <h2 className="text-2xl font-bold text-blue-800">{theme.label}</h2>
             </div>
-            {/* 评论数和情感分数 */}
             <div className="flex flex-wrap gap-6 mb-6 text-gray-700">
-              <div>评论数量：<span className="font-bold">{theme.volume}</span></div>
+              <div>评论数量：<span className="font-bold">{theme.summary?.meta?.total_comments || theme.volume}</span></div>
               <div>
                 情感分数：
-                <span className="text-green-600 ml-1">积极 {theme.sentiment.pos}</span>
-                <span className="text-red-600 ml-2">消极 {theme.sentiment.neg}</span>
-                <span className="text-gray-600 ml-2">中性 {theme.sentiment.neut}</span>
-                <span className="text-blue-600 ml-2">总体 {theme.sentiment.total}</span>
-                <span className="text-purple-600 ml-2">净值 {((theme.sentiment.pos - theme.sentiment.neg) / theme.volume * 100).toFixed(2)}</span>
+                <span className="text-green-600 ml-1">积极 {theme.summary?.meta?.sentiment?.positive || theme.sentiment?.pos}</span>
+                <span className="text-red-600 ml-2">消极 {theme.summary?.meta?.sentiment?.negative || theme.sentiment?.neg}</span>
+                <span className="text-gray-600 ml-2">中性 {theme.summary?.meta?.sentiment?.neutral || theme.sentiment?.neut}</span>
               </div>
             </div>
-            {/* summary内容分块渲染 */}
-            <SummaryBlock summary={theme.summary} />
+            <SummaryBlock summaryData={theme.summary} />
           </div>
         ))}
       </div>
@@ -34,11 +30,53 @@ export default function ThemeSummaryReport({ themes }) {
   );
 }
 
-function SummaryBlock({ summary }) {
-  if (!summary) return <div className="text-gray-400">暂无总结</div>;
+function SummaryBlock({ summaryData }) {
+  if (!summaryData || typeof summaryData !== 'object' || Object.keys(summaryData).length === 0) {
+    return <div className="text-gray-400">暂无总结数据</div>;
+  }
 
-  // 按照实际的标识符分块
-  const sections = parseSummaryIntoSections(summary);
+  const sections = [];
+  const { summary, representative_comments, trend_and_suggestion } = summaryData;
+
+  if (summary) {
+    if (summary.tone_summary && summary.tone_summary.trim()) {
+      sections.push({ title: '整体论调总结', content: summary.tone_summary.trim(), type: 'tone_summary' });
+    }
+    if (summary.positive_focus && summary.positive_focus.length > 0) {
+      sections.push({ title: '正面焦点', content: summary.positive_focus.map(item => `- ${item}`).join('\n'), type: 'positive_focus' });
+    }
+    if (summary.negative_focus && summary.negative_focus.length > 0) {
+      sections.push({ title: '负面焦点', content: summary.negative_focus.map(item => `- ${item}`).join('\n'), type: 'negative_focus' });
+    }
+    if (summary.consensus && summary.consensus.length > 0) {
+      sections.push({ title: '共识', content: summary.consensus.map(item => `- ${item}`).join('\n'), type: 'consensus' });
+    }
+    if (summary.divergence && summary.divergence.length > 0) {
+      sections.push({ title: '分歧点', content: summary.divergence.map(item => `- ${item}`).join('\n'), type: 'divergence' });
+    }
+  }
+
+  if (representative_comments) {
+    if (representative_comments.positive && representative_comments.positive.trim()) {
+      sections.push({ title: '正面代表性评论', content: representative_comments.positive.trim(), type: 'positive_comment' });
+    }
+    if (representative_comments.negative && representative_comments.negative.trim()) {
+      sections.push({ title: '负面代表性评论', content: representative_comments.negative.trim(), type: 'negative_comment' });
+    }
+  }
+
+  if (trend_and_suggestion) {
+    if (trend_and_suggestion.insight && trend_and_suggestion.insight.trim()) {
+      sections.push({ title: '洞察', content: trend_and_suggestion.insight.trim(), type: 'insight' });
+    }
+    if (trend_and_suggestion.risk_and_opportunity && trend_and_suggestion.risk_and_opportunity.length > 0) {
+      sections.push({ title: '风险与机遇', content: trend_and_suggestion.risk_and_opportunity.map(item => `- ${item}`).join('\n'), type: 'risk_opportunity' });
+    }
+  }
+
+  if (sections.length === 0) {
+    return <div className="text-gray-400">总结内容为空</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -49,233 +87,33 @@ function SummaryBlock({ summary }) {
   );
 }
 
-function parseSummaryIntoSections(summary) {
-  const sections = [];
-  
-  // 首先按 ▍ 符号分割
-  const mainSections = summary.split(/▍/).filter(Boolean);
-  
-  mainSections.forEach(sectionText => {
-    const trimmed = sectionText.trim();
-    if (!trimmed) return;
-    
-    // 提取章节标题（第一行）
-    const lines = trimmed.split('\n').filter(Boolean);
-    const title = lines[0].replace(/：$/, '').trim();
-    const content = lines.slice(1).join('\n');
-    
-    // 过滤掉重复的统计信息和主题标题
-    if (title.includes('总评论量') || 
-        title.includes('情绪概览') || 
-        title.includes('【一级主题】') ||
-        title === '---') {
-      return; // 跳过这些重复内容
-    }
-    
-    // 对于综合总结，需要进一步拆分正面反馈和负面反馈
-    if (title.includes('综合总结')) {
-      const subSections = parseFeedbackSections(content);
-      sections.push(...subSections);
-      
-      // 在综合总结后，继续寻找代表性评论和趋势判断
-      const examplesMatch = trimmed.match(/▍\s*代表性评论[^：]*：?\s*([\s\S]*?)(?=▍|$)/);
-      if (examplesMatch && examplesMatch[1].trim()) {
-        sections.push({
-          title: '代表性评论',
-          content: examplesMatch[1].trim(),
-          type: 'examples'
-        });
-      }
-      
-      const suggestionsMatch = trimmed.match(/▍\s*趋势判断[^：]*：?\s*([\s\S]*?)(?=▍|$)/);
-      if (suggestionsMatch && suggestionsMatch[1].trim()) {
-        sections.push({
-          title: '趋势判断 / 潜在建议',
-          content: suggestionsMatch[1].trim(),
-          type: 'suggestions'
-        });
-      }
-    } else {
-      sections.push({
-        title,
-        content,
-        type: getSectionType(title)
-      });
-    }
-  });
-  
-  // 如果还没找到代表性评论，在整个 summary 中寻找
-  if (!sections.some(s => s.type === 'examples')) {
-    const examplesMatch = summary.match(/▍\s*代表性评论[^：]*：?\s*([\s\S]*?)(?=▍|$)/);
-    if (examplesMatch && examplesMatch[1].trim()) {
-      sections.push({
-        title: '代表性评论',
-        content: examplesMatch[1].trim(),
-        type: 'examples'
-      });
-    }
-  }
-  
-  // 如果还没找到趋势判断，在整个 summary 中寻找
-  if (!sections.some(s => s.type === 'suggestions')) {
-    const suggestionsMatch = summary.match(/▍\s*趋势判断[^：]*：?\s*([\s\S]*?)(?=▍|$)/);
-    if (suggestionsMatch && suggestionsMatch[1].trim()) {
-      sections.push({
-        title: '趋势判断 / 潜在建议',
-        content: suggestionsMatch[1].trim(),
-        type: 'suggestions'
-      });
-    }
-  }
-  
-  return sections;
-}
-
-function parseFeedbackSections(content) {
-  const sections = [];
-  
-  // 先添加综合总结的主要内容（在正面反馈之前的部分）
-  const summaryMatch = content.match(/^([\s\S]*?)(?=正面反馈|负面反馈|共识|分歧点)/);
-  if (summaryMatch && summaryMatch[1].trim()) {
-    sections.push({
-      title: '综合总结',
-      content: summaryMatch[1].trim(),
-      type: 'summary'
-    });
-  }
-  
-  // 提取正面反馈 - 修复正则，确保不丢失内容
-  const positiveMatch = content.match(/正面反馈[^：]*：?\s*\n?([\s\S]*?)(?=\n负面反馈|负面反馈主要集中在|共识：|分歧点：|代表性评论|趋势判断|$)/);
-  if (positiveMatch && positiveMatch[1].trim()) {
-    sections.push({
-      title: '正面反馈',
-      content: positiveMatch[1].trim(),
-      type: 'positive-feedback'
-    });
-  }
-  
-  // 提取负面反馈 - 修复正则
-  const negativeMatch = content.match(/负面反馈[^：]*：?\s*\n?([\s\S]*?)(?=\n共识：|共识：|分歧点：|代表性评论|趋势判断|整体情绪|$)/);
-  if (negativeMatch && negativeMatch[1].trim()) {
-    sections.push({
-      title: '负面反馈',
-      content: negativeMatch[1].trim(),
-      type: 'negative-feedback'
-    });
-  }
-  
-  // 提取共识 - 修复正则匹配
-  const consensusMatch = content.match(/\*\*共识\*\*：?\s*\n?([\s\S]*?)(?=\n\*\*分歧点\*\*|分歧点：|代表性评论|趋势判断|整体情绪|$)/);
-  if (consensusMatch && consensusMatch[1].trim()) {
-    sections.push({
-      title: '共识',
-      content: consensusMatch[1].trim(),
-      type: 'consensus'
-    });
-  }
-  
-  // 提取分歧点 - 修复正则匹配
-  const disagreementMatch = content.match(/\*\*分歧点\*\*：?\s*\n?([\s\S]*?)(?=代表性评论|趋势判断|整体情绪|$)/);
-  if (disagreementMatch && disagreementMatch[1].trim()) {
-    sections.push({
-      title: '分歧点',
-      content: disagreementMatch[1].trim(),
-      type: 'disagreement'
-    });
-  }
-  
-  // 提取整体情绪偏向等其他内容
-  const emotionMatch = content.match(/整体情绪[^：]*：?\s*\n?([\s\S]*?)(?=代表性评论|趋势判断|$)/);
-  if (emotionMatch && emotionMatch[1].trim()) {
-    sections.push({
-      title: '整体情绪偏向',
-      content: emotionMatch[1].trim(),
-      type: 'emotion'
-    });
-  }
-  
-  return sections;
-}
-
-function getSectionType(title) {
-  if (title.includes('总评论量') || title.includes('情绪概览')) return 'stats';
-  if (title.includes('综合总结')) return 'summary';
-  if (title.includes('正面反馈')) return 'positive-feedback';
-  if (title.includes('负面反馈')) return 'negative-feedback';
-  if (title.includes('共识')) return 'consensus';
-  if (title.includes('分歧点')) return 'disagreement';
-  if (title.includes('代表性评论')) return 'examples';
-  if (title.includes('趋势判断') || title.includes('潜在建议')) return 'suggestions';
-  if (title.includes('整体情绪')) return 'emotion';
-  return 'general';
-}
-
 function SectionCard({ section }) {
   const { title, content, type } = section;
   
-  // 根据类型设置不同的样式
   const getTypeStyles = () => {
     switch (type) {
-      case 'stats':
-        return {
-          bgColor: 'bg-blue-50',
-          titleColor: 'text-blue-700',
-          borderColor: 'border-blue-200'
-        };
-      case 'summary':
-        return {
-          bgColor: 'bg-green-50',
-          titleColor: 'text-green-700',
-          borderColor: 'border-green-200'
-        };
-      case 'positive-feedback':
-        return {
-          bgColor: 'bg-emerald-50',
-          titleColor: 'text-emerald-700',
-          borderColor: 'border-emerald-200'
-        };
-      case 'negative-feedback':
-        return {
-          bgColor: 'bg-red-50',
-          titleColor: 'text-red-700',
-          borderColor: 'border-red-200'
-        };
+      case 'tone_summary':
+        return { bgColor: 'bg-green-50', titleColor: 'text-green-700', borderColor: 'border-green-200' };
+      case 'positive_focus':
+      case 'positive_comment':
+        return { bgColor: 'bg-emerald-50', titleColor: 'text-emerald-700', borderColor: 'border-emerald-200' };
+      case 'negative_focus':
+      case 'negative_comment':
+        return { bgColor: 'bg-red-50', titleColor: 'text-red-700', borderColor: 'border-red-200' };
       case 'consensus':
-        return {
-          bgColor: 'bg-cyan-50',
-          titleColor: 'text-cyan-700',
-          borderColor: 'border-cyan-200'
-        };
-      case 'disagreement':
-        return {
-          bgColor: 'bg-amber-50',
-          titleColor: 'text-amber-700',
-          borderColor: 'border-amber-200'
-        };
-      case 'examples':
-        return {
-          bgColor: 'bg-purple-50',
-          titleColor: 'text-purple-700',
-          borderColor: 'border-purple-200'
-        };
-      case 'suggestions':
-        return {
-          bgColor: 'bg-indigo-50',
-          titleColor: 'text-indigo-700',
-          borderColor: 'border-indigo-200'
-        };
-      case 'emotion':
-        return {
-          bgColor: 'bg-pink-50',
-          titleColor: 'text-pink-700',
-          borderColor: 'border-pink-200'
-        };
+        return { bgColor: 'bg-cyan-50', titleColor: 'text-cyan-700', borderColor: 'border-cyan-200' };
+      case 'divergence':
+        return { bgColor: 'bg-amber-50', titleColor: 'text-amber-700', borderColor: 'border-amber-200' };
+      case 'insight':
+        return { bgColor: 'bg-purple-50', titleColor: 'text-purple-700', borderColor: 'border-purple-200' };
+      case 'risk_opportunity':
+        return { bgColor: 'bg-indigo-50', titleColor: 'text-indigo-700', borderColor: 'border-indigo-200' };
+      case 'summary_short': 
+        return { bgColor: 'bg-teal-50', titleColor: 'text-teal-700', borderColor: 'border-teal-200' };
+      case 'keywords': 
+        return { bgColor: 'bg-sky-50', titleColor: 'text-sky-700', borderColor: 'border-sky-200' };
       default:
-        return {
-          bgColor: 'bg-gray-50',
-          titleColor: 'text-gray-700',
-          borderColor: 'border-gray-200'
-        };
+        return { bgColor: 'bg-gray-50', titleColor: 'text-gray-700', borderColor: 'border-gray-200' };
     }
   };
 
@@ -295,39 +133,37 @@ function SectionCard({ section }) {
 }
 
 function ContentRenderer({ content }) {
-  if (!content) return null;
+  if (typeof content !== 'string' || !content.trim()) return null;
   
-  // 将内容按段落和列表分块
   const parts = content.split(/\n\n+/).filter(Boolean);
   
   return (
     <div className="space-y-3">
       {parts.map((part, idx) => {
-        const trimmed = part.trim();
+        const trimmedPart = part.trim();
         
-        // 如果包含列表项（以 - 开头的行）
-        if (trimmed.includes('\n- ') || trimmed.startsWith('- ')) {
-          const listItems = trimmed.split(/\n-\s+/).filter(Boolean);
-          const [firstPart, ...items] = listItems;
-          
+        if (trimmedPart.includes('\n- ') || trimmedPart.startsWith('- ')) {
+          const listSegments = trimmedPart.split(/\n-\s*/);
+          const intro = listSegments[0] && !listSegments[0].startsWith('- ') ? listSegments[0].trim() : null;
+          const items = intro ? listSegments.slice(1) : listSegments.map(s => s.replace(/^- /, '').trim()).filter(Boolean);
+
           return (
             <div key={idx}>
-              {firstPart && !firstPart.startsWith('-') && (
-                <p className="mb-2">{firstPart}</p>
+              {intro && <p className="mb-2 text-sm leading-relaxed">{intro}</p>}
+              {items.length > 0 && (
+                <ul className="list-disc pl-6 space-y-1">
+                  {items.map((item, i) => (
+                    <li key={i} className="text-sm leading-relaxed">{item}</li>
+                  ))}
+                </ul>
               )}
-              <ul className="list-disc pl-6 space-y-1">
-                {items.map((item, i) => (
-                  <li key={i} className="text-sm leading-relaxed">{item.trim()}</li>
-                ))}
-              </ul>
             </div>
           );
         }
         
-        // 普通段落
         return (
           <p key={idx} className="text-sm leading-relaxed">
-            {trimmed}
+            {trimmedPart}
           </p>
         );
       })}
