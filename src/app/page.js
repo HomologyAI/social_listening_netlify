@@ -5,9 +5,12 @@ import QuadrantChart from "../components/QuadrantChart";
 import ThemeDetail from "../components/ThemeDetail";
 import StackedSentimentBarChart from "../components/StackedSentimentBarChart";
 import VolumeSentimentLineChart from "../components/VolumeSentimentLineChart";
+import SidebarTOC from "../components/SidebarTOC";
+import { sanitizeForId } from "../utils/sanitizeForId";
 
 export default function Home() {
   const [data, setData] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     fetch("data/autohome_dongchedi_summary_postprocess.json")
@@ -25,30 +28,48 @@ export default function Home() {
   : [];
 
   return (
-    <div className="mx-auto p-4 md:p-8 bg-slate-50 min-h-screen">
-      {themes.length > 0 && (
-        <div className="flex flex-row w-full gap-8 mb-10">
-          <div className="w-1/2 min-w-0">
-            <StackedSentimentBarChart themesData={themes} />
+    <>
+      <SidebarTOC themes={themes} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <div className={`mx-auto p-4 md:p-8 bg-slate-50 min-h-screen ml-72`}>
+        {themes.length > 0 && (
+          <div className="flex flex-col lg:flex-row w-full gap-8 mb-10">
+            <div id="stacked-sentiment-chart" className="w-full lg:w-1/2 min-w-0">
+              <StackedSentimentBarChart themesData={themes} />
+            </div>
+            <div id="volume-sentiment-chart" className="w-full lg:w-1/2 min-w-0">
+              <VolumeSentimentLineChart themesData={themes} />
+            </div>
           </div>
-          <div className="w-1/2 min-w-0">
-            <VolumeSentimentLineChart themesData={themes} />
+        )}
+
+        {data.coordinates && 
+          <div id="quadrant-chart" className="mb-10">
+            <QuadrantChart coordinates={data.coordinates} />
           </div>
-        </div>
-      )}
+        }
+        
+        {themes.length > 0 && 
+          <div id="summary-report" className="mb-10 scroll-mt-16">
+            <ThemeSummaryReport themes={themes} />
+          </div>
+        }
 
-      {data.coordinates && <QuadrantChart coordinates={data.coordinates} />}
-      
-      {themes.length > 0 && <ThemeSummaryReport themes={themes} />}
-
-      {themes.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center border-t pt-8 border-slate-300">各主题详细解析</h2>
-          {themes.map(theme => (
-            <ThemeDetail key={theme.label || theme.summary?.topic} theme={theme} />
-          ))}
-        </div>
-      )}
-    </div>
+        {themes.length > 0 && (
+          <div id="theme-details-section" className="mt-12 scroll-mt-16">
+            <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center border-t pt-8 border-slate-300">各主题详细解析</h2>
+            {themes.map((theme, index) => {
+              const themeTitle = theme.label || theme.summary?.topic || "untitled-theme";
+              const parentThemeSanitizedIdentifier = sanitizeForId(themeTitle);
+              const themeId = `theme-detail-${parentThemeSanitizedIdentifier}`;
+              return (
+                <div id={themeId} key={index} className="mb-8 scroll-mt-20">
+                  <ThemeDetail theme={theme} parentThemeSanitizedIdentifier={parentThemeSanitizedIdentifier} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

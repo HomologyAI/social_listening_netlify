@@ -1,30 +1,35 @@
 'use client';
 import React from "react";
+import { sanitizeForId } from '../utils/sanitizeForId';
 
 export default function ThemeSummaryReport({ themes }) {
-  console.log(themes);
+  // console.log(themes);
   return (
-    <section className="w-full mb-8">
+    <section id="summary-report" className="w-full mb-8 scroll-mt-16">
       <h1 className="text-3xl font-bold text-center text-blue-900 mb-8 tracking-wide">领克 900 用户深度洞察报告</h1>
       <div className="space-y-8">
-        {themes.map(theme => (
-          <div key={theme.label} className="bg-white rounded-xl shadow-lg border border-blue-100 p-8">
-            <div className="flex items-center mb-4">
-              <div className="w-2 h-8 bg-blue-600 rounded mr-3"></div>
-              <h2 className="text-2xl font-bold text-blue-800">{theme.label}</h2>
-            </div>
-            <div className="flex flex-wrap gap-6 mb-6 text-gray-700">
-              <div>评论数量：<span className="font-bold">{theme.summary?.meta?.total_comments || theme.volume}</span></div>
-              <div>
-                情感分数：
-                <span className="text-green-600 ml-1">积极 {theme.summary?.meta?.sentiment?.positive || theme.sentiment?.pos}</span>
-                <span className="text-red-600 ml-2">消极 {theme.summary?.meta?.sentiment?.negative || theme.sentiment?.neg}</span>
-                <span className="text-gray-600 ml-2">中性 {theme.summary?.meta?.sentiment?.neutral || theme.sentiment?.neut}</span>
+        {themes.map(theme => {
+          const themeIdentifier = theme.label || theme.summary?.topic || `theme-${Math.random().toString(36).substring(2, 9)}`;
+          const themeReportCardId = `theme-summary-report-${sanitizeForId(themeIdentifier)}`;
+          return (
+            <div id={themeReportCardId} key={themeIdentifier} className="bg-white rounded-xl shadow-lg border border-blue-100 p-8 scroll-mt-20">
+              <div className="flex items-center mb-4">
+                <div className="w-2 h-8 bg-blue-600 rounded mr-3"></div>
+                <h2 className="text-2xl font-bold text-blue-800">{theme.label}</h2>
               </div>
+              <div className="flex flex-wrap gap-6 mb-6 text-gray-700">
+                <div>评论数量：<span className="font-bold">{theme.summary?.meta?.total_comments || theme.volume}</span></div>
+                <div>
+                  情感分数：
+                  <span className="text-green-600 ml-1">积极 {theme.summary?.meta?.sentiment?.positive || theme.sentiment?.pos}</span>
+                  <span className="text-red-600 ml-2">消极 {theme.summary?.meta?.sentiment?.negative || theme.sentiment?.neg}</span>
+                  <span className="text-gray-600 ml-2">中性 {theme.summary?.meta?.sentiment?.neutral || theme.sentiment?.neut}</span>
+                </div>
+              </div>
+              <SummaryBlock summaryData={theme.summary} />
             </div>
-            <SummaryBlock summaryData={theme.summary} />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -80,9 +85,9 @@ function SummaryBlock({ summaryData }) {
 
   return (
     <div className="space-y-6">
-      {sections.map((section, idx) => (
-        <SectionCard key={idx} section={section} />
-      ))}
+      {sections.map((section, idx) => {
+        return <SectionCard key={idx} section={section} />;
+      })}
     </div>
   );
 }
