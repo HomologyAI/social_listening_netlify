@@ -13,7 +13,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch("data/autohome_dongchedi_summary_postprocess.json")
+    fetch("data/autohome_dongchedi_summary_postprocess_优化_merge.json")
       .then(res => res.json())
       .then(setData);
   }, []);
