@@ -21,10 +21,11 @@ export default function ThemeSummaryReport({ themes }) {
                 <div>评论数量：<span className="font-bold">{theme.summary?.meta?.total_comments || theme.volume}</span></div>
                 <div>
                   情感分数：
-                  <span className="text-green-600 ml-1">积极 {theme.summary?.meta?.sentiment?.positive || theme.sentiment?.pos}</span>
-                  <span className="text-red-600 ml-2">消极 {theme.summary?.meta?.sentiment?.negative || theme.sentiment?.neg}</span>
-                  <span className="text-gray-600 ml-2">中性 {theme.summary?.meta?.sentiment?.neutral || theme.sentiment?.neut}</span>
+                  <span className="text-green-600 ml-1">积极 {theme.sentiment?.pos}</span>
+                  <span className="text-red-600 ml-2">消极 {theme.sentiment?.neg}</span>
+                  <span className="text-gray-600 ml-2">中性 {theme.sentiment?.neut}</span>
                 </div>
+                <div>整体分数：<span className="font-bold">{(theme.sentiment?.total / theme.volume * 100).toFixed(2) + `%`}</span></div>
               </div>
               <SummaryBlock summaryData={theme.summary} />
             </div>
