@@ -13,8 +13,8 @@ export default function ThemeDetail({ theme }) {
       <div className="mt-4">
         <div className="font-semibold mb-2">二级主题</div>
         <div className="grid gap-2">
-          {theme.second_level_themes.map(sub => (
-            <div key={sub.label} className="border rounded p-2">
+          {theme.second_level_themes.map((sub, index) => (
+            <div key={index} className="border rounded p-2">
               <div className="font-semibold">{sub.label}</div>
               <div>声量: {sub.volume}</div>
               <div>情感态度: {sub.sentiment}</div>
