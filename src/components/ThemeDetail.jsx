@@ -43,9 +43,9 @@ export default function ThemeDetail({ theme }) {
                 </div>
                 <div>
                   <span className="text-slate-600">情感态度: </span>
-                  <span className="text-green-600 font-medium">积极 {sub.stats.sentiment?.pos || 'N/A'}</span> |
-                  <span className="text-red-600 font-medium"> 消极 {sub.stats.sentiment?.neg || 'N/A'}</span> |
-                  <span className="text-slate-500 font-medium"> 中性 {sub.stats.sentiment?.neut || 'N/A'}</span>
+                  <span className="text-green-600 font-medium">积极 {sub.stats.sentiment?.pos || '0'}</span> |
+                  <span className="text-red-600 font-medium"> 消极 {sub.stats.sentiment?.neg || '0'}</span> |
+                  <span className="text-slate-500 font-medium"> 中性 {sub.stats.sentiment?.neut || '0'}</span>
                 </div>
               </div>
               <div className="space-y-4 mb-5">
