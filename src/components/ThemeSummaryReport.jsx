@@ -6,7 +6,6 @@ export default function ThemeSummaryReport({ themes }) {
   // console.log(themes);
   return (
     <section id="summary-report" className="w-full mb-8 scroll-mt-16">
-      <h1 className="text-3xl font-bold text-center text-blue-900 mb-8 tracking-wide">领克 900 用户深度洞察报告</h1>
       <div className="space-y-8">
         {themes.map(theme => {
           const themeIdentifier = theme.label || theme.summary?.topic || `theme-${Math.random().toString(36).substring(2, 9)}`;
