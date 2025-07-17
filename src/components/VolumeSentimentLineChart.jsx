@@ -50,7 +50,7 @@ export default function VolumeSentimentLineChart({ themesData }) {
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '10%',
+      bottom: '15%',
       containLabel: true
     },
     xAxis: [
@@ -60,8 +60,10 @@ export default function VolumeSentimentLineChart({ themesData }) {
         axisTick: { alignWithLabel: true },
         axisLabel: {
           interval: 0,
-          rotate: 30,
-          color: '#555'
+          rotate: 45,
+          color: '#555',
+          fontSize: 11,
+          margin: 10
         }
       }
     ],
@@ -144,7 +146,7 @@ export default function VolumeSentimentLineChart({ themesData }) {
   return (
     <div className="bg-white shadow-xl rounded-xl p-4 md:p-6 my-10 border border-slate-200">
       <h2 className="text-2xl font-bold text-slate-800 mb-6 text-center">一级主题声量与情感净值趋势</h2>
-      <ReactECharts option={option} style={{ height: '600px', width: '100%' }} notMerge={true} lazyUpdate={true} />
+      <ReactECharts option={option} style={{ height: '500px', width: '100%' }} notMerge={true} lazyUpdate={true} />
     </div>
   );
 } 

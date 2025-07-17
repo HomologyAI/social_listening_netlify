@@ -11,7 +11,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch("data/output_full_rawtheme1.json")
+    fetch("data/output_full1.json")
       .then(res => res.json())
       .then(setData);
   }, []);
@@ -28,7 +28,9 @@ export default function Home() {
   return (
     <>
       <SidebarTOC themes={themes} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <div className={`mx-auto p-4 md:p-8 bg-slate-50 min-h-screen ml-72`}>
+      <div className={`transition-all duration-300 ease-in-out p-4 md:p-8 bg-slate-50 min-h-screen ${
+        isSidebarOpen ? 'ml-72' : 'mx-auto max-w-7xl'
+      }`}>
         {themes.length > 0 && (
           <div className="flex flex-col lg:flex-row w-full gap-8 mb-10">
             <div id="stacked-sentiment-chart" className="w-full lg:w-1/2 min-w-0">
