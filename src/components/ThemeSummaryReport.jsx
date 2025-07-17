@@ -63,11 +63,11 @@ function SummaryBlock({ summaryData }) {
   }
 
   if (representative_comments) {
-    if (representative_comments.positive && representative_comments.positive.trim()) {
-      sections.push({ title: '正面代表性评论', content: representative_comments.positive.trim(), type: 'positive_comment' });
+    if (representative_comments.positive && Array.isArray(representative_comments.positive) && representative_comments.positive.length > 0) {
+      sections.push({ title: '正面代表性评论', content: representative_comments.positive.map(item => `- ${item}`).join('\n'), type: 'positive_comment' });
     }
-    if (representative_comments.negative && representative_comments.negative.trim()) {
-      sections.push({ title: '负面代表性评论', content: representative_comments.negative.trim(), type: 'negative_comment' });
+    if (representative_comments.negative && Array.isArray(representative_comments.negative) && representative_comments.negative.length > 0) {
+      sections.push({ title: '负面代表性评论', content: representative_comments.negative.map(item => `- ${item}`).join('\n'), type: 'negative_comment' });
     }
   }
 

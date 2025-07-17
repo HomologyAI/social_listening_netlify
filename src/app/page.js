@@ -2,18 +2,16 @@
 import { useEffect, useState } from "react";
 import ThemeSummaryReport from "../components/ThemeSummaryReport";
 import QuadrantChart from "../components/QuadrantChart";
-import ThemeDetail from "../components/ThemeDetail";
 import StackedSentimentBarChart from "../components/StackedSentimentBarChart";
 import VolumeSentimentLineChart from "../components/VolumeSentimentLineChart";
 import SidebarTOC from "../components/SidebarTOC";
-import { sanitizeForId } from "../utils/sanitizeForId";
 
 export default function Home() {
   const [data, setData] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch("data/autohome_dongchedi_summary_postprocess_优化_merge.json")
+    fetch("data/output_full_rawtheme1.json")
       .then(res => res.json())
       .then(setData);
   }, []);
@@ -53,22 +51,6 @@ export default function Home() {
             <ThemeSummaryReport themes={themes} />
           </div>
         }
-
-        {themes.length > 0 && (
-          <div id="theme-details-section" className="mt-12 scroll-mt-16">
-            <h2 className="text-3xl font-bold text-slate-800 mb-8 text-center border-t pt-8 border-slate-300">各主题详细解析</h2>
-            {themes.map((theme, index) => {
-              const themeTitle = theme.label || theme.summary?.topic || "untitled-theme";
-              const parentThemeSanitizedIdentifier = sanitizeForId(themeTitle);
-              const themeId = `theme-detail-${parentThemeSanitizedIdentifier}`;
-              return (
-                <div id={themeId} key={index} className="mb-8 scroll-mt-20">
-                  <ThemeDetail theme={theme} parentThemeSanitizedIdentifier={parentThemeSanitizedIdentifier} />
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     </>
   );

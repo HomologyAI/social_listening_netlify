@@ -31,56 +31,15 @@ const SidebarTOC = ({ themes = [], isOpen, setIsOpen }) => {
     });
   }
 
-  // 3. Link to the main ThemeDetail section container
-  if (themes.length > 0) {
-    tocItems.push({
-      label: "各主题详细解析", // This is the main title for the section of detail reports
-      href: "#theme-details-section", // ID of the main div for theme details in page.js
-      type: "main_detail_header",
-      isHeader: false, // Make it a clickable link to the top of the details area
-      className: "pt-3" // Add some top padding for visual separation
-    });
-
-    // Links to individual theme detail cards
-    themes.forEach(theme => {
-      const themeTitleText = theme.label || theme.summary?.topic || "untitled-theme";
-      const parentThemeSanitizedIdentifier = sanitizeForId(themeTitleText);
-      // Link to the parent ThemeDetail card
-      tocItems.push({
-        label: `${themeTitleText} (详情总览)`,
-        href: `#theme-detail-${parentThemeSanitizedIdentifier}`,
-        type: "theme_detail_card_item",
-      });
-
-      // Links to individual second-level theme cards within this ThemeDetail
-      if (theme.second_level_themes && theme.second_level_themes.length > 0) {
-        theme.second_level_themes.forEach(subTheme => {
-          const subThemeTitle = subTheme.label || 'untitled-subtheme';
-          const subThemeHref = `#theme-detail-${parentThemeSanitizedIdentifier}-subtheme-${sanitizeForId(subThemeTitle)}`;
-          tocItems.push({
-            label: `${subThemeTitle}`,
-            href: subThemeHref,
-            type: "theme_sub_detail_item",
-          });
-        });
-      }
-    });
-  }
-
   const getTocItemStyles = (type) => {
     let paddingClass = "";
     let prefix = "";
     switch (type) {
       case "theme_summary_card_item":
-      case "theme_detail_card_item":
         paddingClass = "pl-4";
         prefix = "└ ";
         break;
-      case "theme_sub_detail_item":
-        paddingClass = "pl-8";
-        prefix = "› ";
-        break;
-      // default: no padding, no prefix for main_chart, main_summary_header, main_detail_header
+      // default: no padding, no prefix for main_chart, main_summary_header
     }
     return { paddingClass, prefix };
   };
