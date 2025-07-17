@@ -11,7 +11,7 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    fetch("data/output_full_rawtheme.json")
+    fetch("data/output_full1.json")
       .then(res => res.json())
       .then(setData);
   }, []);
